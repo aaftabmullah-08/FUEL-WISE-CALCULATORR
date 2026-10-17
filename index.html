@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maharashtra Trip Planner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#fffaf0;color:#26372e}
+header{background:#12352c;color:white;padding:18px 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.logo{font-size:25px;font-weight:bold;color:#ffc04d}
+nav a{color:white;text-decoration:none;margin:0 10px}
+.hero{padding:100px 7%;color:white;background:linear-gradient(90deg,#102f27e8,#102f2740),url('https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1600&q=80') center/cover}
+.hero h1{font-size:clamp(36px,6vw,62px);max-width:750px;line-height:1.15;margin:15px 0}
+.hero p{font-size:18px;max-width:600px}
+button,.btn{border:0;border-radius:7px;padding:12px 18px;background:#f5a623;color:#222;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block;margin-top:18px}
+section{padding:55px 7%}
+.heading{text-align:center;margin-bottom:28px}
+.heading h2{font-size:34px;color:#176b4d}
+.heading p{color:#66746d;margin-top:8px}
+input,select{width:100%;padding:12px;border:1px solid #ccd8ce;border-radius:7px;font-size:15px;background:white}
+#search{max-width:450px;display:block;margin:0 auto 22px}
+.filters{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:25px}
+.filters button{margin:0;background:white;border:1px solid #ddd}
+.filters button.active{background:#176b4d;color:white}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.card{background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 18px #00000012}
+.card img{width:100%;height:210px;object-fit:cover;display:block}
+.card-content{padding:18px}
+.tag{font-size:12px;color:#176b4d;background:#e8f4ec;padding:5px 10px;border-radius:20px}
+.card h3{margin-top:12px;font-size:22px}
+.card p{color:#66746d;font-size:14px;margin-top:7px}
+.card a{color:#176b4d;font-weight:bold;font-size:13px}
+.card button{background:#176b4d;color:white;margin-right:8px}
+.planner{background:#eaf2e9}
+.form-box{max-width:850px;margin:auto;background:white;padding:28px;border-radius:12px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+label{display:block;font-weight:bold;margin-bottom:7px}
+.full{grid-column:1/-1}
+#result{display:none;margin-top:25px}
+.day{background:#f4f8f3;border-left:4px solid #176b4d;padding:16px;margin:13px 0}
+.day h3{color:#176b4d;margin-bottom:6px}
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.feature{background:white;border-radius:10px;padding:22px;text-align:center}
+.feature h3{color:#176b4d;margin:8px 0}
+footer{background:#12352c;color:white;text-align:center;padding:30px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.features{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:550px){header{justify-content:center}nav{text-align:center}nav a{display:inline-block;margin:5px}.grid,.form-grid{grid-template-columns:1fr}.full{grid-column:auto}section{padding:40px 5%}.hero{padding:65px 5%}.features{grid-template-columns:1fr}.form-box{padding:18px}}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">Explore Maharashtra 🌿</div>
+<nav>
+<a href="#home">Home</a>
+<a href="#destinations">Destinations</a>
+<a href="#planner">Plan Trip</a>
+<a href="#about">About</a>
+</nav>
+</header>
+
+<section class="hero" id="home">
+<p>DISCOVER MAHARASHTRA, INDIA</p>
+<h1>Your Maharashtra Adventure Starts Here</h1>
+<p>Explore Sahyadri mountains, historic forts, beautiful beaches, ancient caves and unforgettable destinations.</p>
+<a class="btn" href="#planner">Plan My Trip →</a>
+</section>
+
+<section id="destinations">
+<div class="heading">
+<h2>Popular Destinations</h2>
+<p>Discover amazing places across Maharashtra.</p>
+</div>
+<input id="search" placeholder="Search destinations...">
+<div class="filters">
+<button class="active" data-cat="All">All</button>
+<button data-cat="Hill Station">Hill Stations</button>
+<button data-cat="Beach">Beaches</button>
+<button data-cat="Fort">Forts</button>
+<button data-cat="Heritage">Heritage</button>
+<button data-cat="Nature">Nature</button>
+<button data-cat="Spiritual">Temples</button>
+</div>
+<div class="grid" id="places"></div>
+<p id="empty" style="display:none;text-align:center;padding:20px">No destinations found.</p>
+</section>
+
+<section class="planner" id="planner">
+<div class="heading">
+<h2>Create Your Trip Plan</h2>
+<p>Choose your budget, trip duration and favourite experience.</p>
+</div>
+<div class="form-box">
+<form id="tripForm">
+<div class="form-grid">
+<div><label for="start">Starting City</label>
+<select id="start">
+<option>Mumbai</option><option>Pune</option><option>Thane</option>
+<option>Nashik</option><option>Nagpur</option><option>Kolhapur</option>
+<option>Chhatrapati Sambhajinagar</option>
+</select></div>
+<div><label for="interest">Travel Interest</label>
+<select id="interest">
+<option value="Hill Station">Hill Stations</option>
+<option value="Beach">Beaches</option>
+<option value="Fort">Forts and Adventure</option>
+<option value="Heritage">History and Heritage</option>
+<option value="Nature">Nature and Wildlife</option>
+<option value="Spiritual">Temples</option>
+<option value="All">Everything</option>
+</select></div>
+<div><label for="days">Trip Duration</label>
+<select id="days">
+<option value="1">1 Day</option><option value="2">2 Days</option>
+<option value="3" selected>3 Days</option><option value="4">4 Days</option>
+<option value="5">5 Days</option><option value="6">6 Days</option>
+<option value="7">7 Days</option>
+</select></div>
+<div><label for="budget">Budget Per Person</label>
+<select id="budget">
+<option value="1500">Under ₹2,000</option>
+<option value="4000">₹2,000–₹5,000</option>
+<option value="8000">₹5,000–₹10,000</option>
+<option value="15000">₹10,000+</option>
+</select></div>
+<div class="full"><label for="people">Number of Travellers</label>
+<input id="people" type="number" min="1" max="50" value="2" required></div>
+</div>
+<button type="submit">Generate My Itinerary ✨</button>
+</form>
+<div id="result"></div>
+<p style="font-size:12px;color:#66746d;margin-top:15px">This is a sample planner. Verify transport, costs, opening times and bookings before travelling.</p>
+</div>
+</section>
+
+<section id="about">
+<div class="heading">
+<h2>Experience Maharashtra</h2>
+<p>One state, countless adventures.</p>
+</div>
+<div class="features">
+<div class="feature"><div style="font-size:32px">⛰️</div><h3>Hill Stations</h3><p>Mahabaleshwar and Lonavala.</p></div>
+<div class="feature"><div style="font-size:32px">🏰</div><h3>Historic Forts</h3><p>Raigad and Sinhagad.</p></div>
+<div class="feature"><div style="font-size:32px">🏖️</div><h3>Beautiful Beaches</h3><p>Alibaug and Konkan.</p></div>
+<div class="feature"><div style="font-size:32px">🛕</div><h3>Culture & Heritage</h3><p>Ajanta and Ellora Caves.</p></div>
+</div>
+</section>
+
+<footer>
+<h3>Explore Maharashtra 🌿</h3>
+<p>Your travel companion for discovering Maharashtra.</p>
+</footer>
+
+<script>
+const destinations=[
+{name:"Mahabaleshwar",cat:"Hill Station",region:"Satara",desc:"Scenic viewpoints, strawberry farms and green valleys.",img:"photo-1470770841072-f978cf4d019e"},
+{name:"Lonavala",cat:"Hill Station",region:"Pune",desc:"Hills, caves, lakes and beautiful monsoon scenery.",img:"photo-1464822759023-fed622ff2c3b"},
+{name:"Matheran",cat:"Hill Station",region:"Raigad",desc:"A peaceful hill station with forest trails.",img:"photo-1448375240586-882707db888b"},
+{name:"Alibaug",cat:"Beach",region:"Raigad",desc:"Coastal beaches and historic sea forts.",img:"photo-1507525428034-b723cf961d3e"},
+{name:"Ganpatipule",cat:"Beach",region:"Ratnagiri",desc:"A peaceful Konkan beach and Ganpati temple.",img:"photo-1519046904884-53103b34b206"},
+{name:"Tarkarli",cat:"Beach",region:"Sindhudurg",desc:"Coastal scenery and water activities.",img:"photo-1498623116890-37e912163d5d"},
+{name:"Raigad Fort",cat:"Fort",region:"Raigad",desc:"A landmark of Maratha history in the Sahyadris.",img:"photo-1605640840605-14ac1855827b"},
+{name:"Sinhagad Fort",cat:"Fort",region:"Pune",desc:"Historic fort and popular trekking destination.",img:"photo-1464822759023-fed622ff2c3b"},
+{name:"Shivneri Fort",cat:"Fort",region:"Pune region",desc:"Historic birthplace of Chhatrapati Shivaji Maharaj.",img:"photo-1472396961693-142e6e269027"},
+{name:"Ajanta Caves",cat:"Heritage",region:"Chhatrapati Sambhajinagar region",desc:"Ancient Buddhist caves and remarkable paintings.",img:"photo-1566552881560-0be862a7c445"},
+{name:"Ellora Caves",cat:"Heritage",region:"Chhatrapati Sambhajinagar",desc:"Rock-cut monuments and the famous Kailasa temple.",img:"photo-1606293926075-69a00dbfde81"},
+{name:"Bibi Ka Maqbara",cat:"Heritage",region:"Chhatrapati Sambhajinagar",desc:"A magnificent historic Mughal-style monument.",img:"photo-1590736969955-71cc94901144"},
+{name:"Bhandardara",cat:"Nature",region:"Ahilyanagar region",desc:"Lakes, waterfalls and mountain scenery.",img:"photo-1470770841072-f978cf4d019e"},
+{name:"Tadoba",cat:"Nature",region:"Chandrapur",desc:"Forest landscapes and guided wildlife safaris.",img:"photo-1511497584788-876760111969"},
+{name:"Kaas Plateau",cat:"Nature",region:"Satara",desc:"A seasonal plateau known for wildflowers.",img:"photo-1448375240586-882707db888b"},
+{name:"Trimbakeshwar",cat:"Spiritual",region:"Nashik",desc:"A revered Shiva temple near the Godavari source region.",img:"photo-1548013146-72479768bada"},
+{name:"Shirdi",cat:"Spiritual",region:"Ahilyanagar",desc:"A major pilgrimage destination associated with Sai Baba.",img:"photo-1604608672516-8b5e5e5a9e95"},
+{name:"Pandharpur",cat:"Spiritual",region:"Solapur",desc:"A pilgrimage destination associated with Lord Vitthal.",img:"photo-1548013146-72479768bada"}
+];
+
+let category="All",chosen="";
+function render(){
+const q=document.getElementById("search").value.toLowerCase().trim();
+const list=destinations.filter(d=>(category==="All"||d.cat===category)&&(d.name+" "+d.region+" "+d.desc+" "+d.cat).toLowerCase().includes(q));
+document.getElementById("places").innerHTML=list.map(d=>`
+<article class="card">
+<img loading="lazy" src="https://images.unsplash.com/${d.img}?auto=format&fit=crop&w=800&q=75" alt="${d.name}" onerror="this.onerror=null;this.src='https://placehold.co/800x450/eaf2e9/176b4d?text=Maharashtra'">
+<div class="card-content">
+<span class="tag">${d.cat}</span><h3>${d.name}</h3>
+<p>📍 ${d.region}</p><p>${d.desc}</p>
+<button onclick="choosePlace('${d.name}')">Plan Visit</button>
+<a target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.name+', Maharashtra, India')}">View Map ↗</a>
+</div></article>`).join("");
+document.getElementById("empty").style.display=list.length?"none":"block";
+}
+document.getElementById("search").addEventListener("input",render);
+document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
+document.querySelectorAll(".filters button").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");category=b.dataset.cat;render();
+}));
+function choosePlace(name){
+chosen=name;
+document.getElementById("interest").value=destinations.find(d=>d.name===name).cat;
+document.getElementById("planner").scrollIntoView({behavior:"smooth"});
+}
+const routes={
+"Hill Station":["Mahabaleshwar","Panchgani","Lonavala","Matheran"],
+"Beach":["Alibaug","Murud","Ganpatipule","Tarkarli"],
+"Fort":["Sinhagad Fort","Raigad Fort","Pratapgad Fort","Shivneri Fort"],
+"Heritage":["Ajanta Caves","Ellora Caves","Daulatabad Fort","Bibi Ka Maqbara"],
+"Nature":["Bhandardara","Tadoba","Kaas Plateau","Sahyadri Nature Trails"],
+"Spiritual":["Trimbakeshwar","Shirdi","Pandharpur","Bhimashankar"],
+"All":["Pune","Mahabaleshwar","Alibaug","Nashik","Lonavala"]
+};
+const descriptions={
+"Mahabaleshwar":"Visit scenic viewpoints and explore the local market.",
+"Panchgani":"Discover Table Land and valley viewpoints.",
+"Lonavala":"Explore viewpoints, caves and lakes.",
+"Alibaug":"Relax at the beach and explore nearby heritage sites.",
+"Ganpatipule":"Enjoy the beach and visit the Ganpati temple.",
+"Tarkarli":"Check local conditions before arranging water activities.",
+"Sinhagad Fort":"Explore the fort and check trekking conditions.",
+"Raigad Fort":"Discover the historic fort and its surrounding landscapes.",
+"Ajanta Caves":"Allow time to explore the ancient cave paintings.",
+"Ellora Caves":"Explore the rock-cut monuments and Kailasa temple.",
+"Bhandardara":"Enjoy the lakeside and mountain scenery.",
+"Tadoba":"Check safari availability and book with authorized providers.",
+"Trimbakeshwar":"Check temple opening hours before visiting.",
+"Shirdi":"Plan time for the Sai Baba temple complex.",
+"Pandharpur":"Explore the pilgrimage town and temple area."
+};
+document.getElementById("tripForm").addEventListener("submit",function(e){
+e.preventDefault();
+const start=document.getElementById("start").value;
+const interest=document.getElementById("interest").value;
+const days=Number(document.getElementById("days").value);
+const budget=Number(document.getElementById("budget").value);
+const people=Number(document.getElementById("people").value);
+if(!Number.isInteger(people)||people<1||people>50){alert("Enter between 1 and 50 travellers.");return;}
+let places=[...(routes[interest]||routes.All)];
+if(chosen)places=[chosen,...places.filter(p=>p!==chosen)];
+const money=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+let html=`<h2>Your Maharashtra Trip Plan</h2>
+<p><b>Starting city:</b> ${start}</p>
+<p><b>Interest:</b> ${interest}</p>
+<p><b>Duration:</b> ${days} days</p>
+<p><b>Travellers:</b> ${people}</p>
+<p><b>Budget per person:</b> ${money(budget)}</p>
+<p><b>Selected group budget:</b> ${money(budget*people)}</p>
+<p>Below is a sample itinerary. Budget figures are your selected limits, not confirmed travel costs.</p>`;
+for(let i=0;i<days;i++){
+const place=places[i%places.length];
+html+=`<div class="day"><h3>Day ${i+1}: ${place}</h3>
+<p>${descriptions[place]||"Explore local attractions and try regional cuisine."}</p>
+<p>Check travel time, opening hours, ticket prices and road conditions before leaving.</p>
+<a target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place+', Maharashtra, India')}">Open Google Maps ↗</a></div>`;
+}
+html+=`<button onclick="window.print()">Print / Save as PDF</button>`;
+const result=document.getElementById("result");
+result.innerHTML=html;result.style.display="block";
+result.scrollIntoView({behavior:"smooth",block:"start"});
+});
+render();
+</script>
+</body>
+</html>

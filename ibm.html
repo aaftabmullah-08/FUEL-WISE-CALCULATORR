@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VulnScope - CVE Risk Analyzer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#0b1120;color:#eaf0fa}
+.app{display:flex;min-height:100vh}
+aside{width:225px;background:#101a2b;padding:25px 16px;border-right:1px solid #26364c}
+.logo{font-size:23px;color:#2dd4bf;font-weight:bold;margin-bottom:35px}
+nav button{display:block;width:100%;padding:13px;margin:5px 0;text-align:left;background:transparent;border:0;color:#a9b7ca;border-radius:8px;cursor:pointer}
+nav button:hover,nav button.active{background:#193042;color:#2dd4bf}
+main{flex:1;padding:30px;min-width:0}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px;flex-wrap:wrap}
+h1{font-size:27px}
+p{color:#94a3b8;font-size:13px;margin-top:6px}
+.status{background:#10332f;color:#5eead4;padding:8px 12px;border-radius:20px;font-size:12px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:25px}
+.card,.panel{background:#121c2e;border:1px solid #26364c;border-radius:12px;padding:19px}
+.label{color:#94a3b8;font-size:12px}
+.number{font-size:30px;font-weight:bold;margin-top:12px}
+.green{color:#2dd4bf}.red{color:#f87171}.yellow{color:#fbbf24}.blue{color:#60a5fa}
+h2{font-size:18px;margin-bottom:15px}
+.layout{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;margin-bottom:25px}
+textarea{width:100%;height:145px;resize:vertical;background:#0b1120;color:#dbeafe;border:1px solid #34445c;border-radius:8px;padding:13px;font:14px monospace}
+button,input,select{font:inherit}
+.btn{padding:11px 15px;border:0;border-radius:7px;cursor:pointer;font-size:13px;font-weight:bold;margin-top:12px}
+.primary{background:#2dd4bf;color:#042f2e}
+.secondary{background:#26364c;color:white}
+select,input{background:#0b1120;color:white;border:1px solid #34445c;padding:10px;border-radius:7px}
+.score{font-size:48px;font-weight:bold;color:#f87171}
+.progress{height:8px;background:#26364c;border-radius:10px;margin:12px 0}
+.progress div{height:100%;width:0;background:#f87171;border-radius:10px}
+.table-panel{padding:0;overflow:hidden;margin-bottom:25px}
+.tools{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:15px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th,td{text-align:left;padding:14px;border-bottom:1px solid #26364c;font-size:12px}
+th{color:#94a3b8;background:#101a2b}
+.badge{padding:5px 8px;border-radius:5px;font-size:10px;font-weight:bold}
+.Critical{background:#541e2a;color:#fda4af}
+.High{background:#4b291d;color:#fdba74}
+.Medium{background:#493a16;color:#fde047}
+.Low{background:#163d36;color:#6ee7b7}
+.cve{color:#7dd3fc}
+#message{margin:15px 0;color:#2dd4bf;font-size:13px}
+#recommendations{line-height:2}
+footer{text-align:center;color:#718096;font-size:12px;padding:20px}
+@media(max-width:1050px){.cards{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}
+@media(max-width:650px){.app{display:block}aside{width:100%;padding:15px}.logo{margin-bottom:10px}nav{display:flex;flex-wrap:wrap}nav button{width:auto;padding:9px}main{padding:18px 12px}.cards{gap:8px}.card{padding:12px}.number{font-size:25px}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+<div class="logo">⬡ VulnScope</div>
+<p style="margin-bottom:20px">DEPENDENCY SECURITY</p>
+<nav>
+<button class="active" onclick="go('overview',this)">▦ Dashboard</button>
+<button onclick="go('analyzer',this)">⌕ Dependency Analyzer</button>
+<button onclick="go('findings',this)">⚠ CVE Findings</button>
+<button onclick="go('risk',this)">◉ Risk Assessment</button>
+</nav>
+<p style="margin-top:30px">Educational demo. Sample findings only, not live scan results.</p>
+</aside>
+
+<main>
+<header>
+<div>
+<h1>Security Dashboard</h1>
+<p>CVE & Dependency Risk Analyzer</p>
+</div>
+<span class="status">● Demo Mode</span>
+</header>
+
+<section id="overview">
+<div class="cards">
+<div class="card"><div class="label">Dependencies</div><div class="number blue" id="deps">5</div><p>Packages entered</p></div>
+<div class="card"><div class="label">Vulnerabilities</div><div class="number red" id="vulns">0</div><p>Sample matches</p></div>
+<div class="card"><div class="label">Critical Findings</div><div class="number yellow" id="crit">0</div><p>Critical severity</p></div>
+<div class="card"><div class="label">Risk Score</div><div class="number" id="riskSmall">0/100</div><p id="riskLabel">Awaiting analysis</p></div>
+</div>
+</section>
+
+<div class="layout">
+<section class="panel" id="analyzer">
+<h2>Analyze Dependencies</h2>
+<p style="margin-bottom:15px">Enter package names and versions, one per line.</p>
+<textarea id="packages">lodash@4.17.20
+axios@0.21.1
+minimist@1.2.5
+jquery@3.4.1
+express@4.17.1</textarea>
+<p>Format: package@version</p>
+<button class="btn primary" onclick="analyze()">▶ Analyze Dependencies</button>
+<button class="btn secondary" onclick="resetForm()">Clear</button>
+<div id="message"></div>
+</section>
+
+<section class="panel" id="risk">
+<h2>Risk Assessment</h2>
+<div class="score" id="score">0</div>
+<p>Risk score out of 100</p>
+<div class="progress"><div id="bar"></div></div>
+<h3 id="riskTitle">Not analyzed</h3>
+<p id="riskText">Analyze your packages to view their sample risk.</p>
+<hr style="border-color:#26364c;margin:20px 0">
+<p>Critical: <b id="cCount">0</b></p>
+<p>High: <b id="hCount">0</b></p>
+<p>Medium: <b id="mCount">0</b></p>
+<p>Low: <b id="lCount">0</b></p>
+</section>
+</div>
+
+<section id="findings">
+<h2>Vulnerability Findings</h2>
+<div class="panel table-panel">
+<div class="tools">
+<input id="search" placeholder="Search package or CVE..." oninput="renderTable()">
+<select id="severity" onchange="renderTable()">
+<option value="All">All Severities</option>
+<option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+</select>
+<button class="btn secondary" onclick="exportCSV()" style="margin:0">Export CSV ↓</button>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>CVE / ID</th><th>Package</th><th>Version</th><th>Severity</th><th>Score</th><th>Suggested Fix</th></tr></thead>
+<tbody id="rows"><tr><td colspan="6">Click Analyze Dependencies to begin.</td></tr></tbody>
+</table>
+</div>
+</div>
+</section>
+
+<section class="panel" style="margin-top:25px">
+<h2>Remediation Recommendations</h2>
+<div id="recommendations"><p>Analyze dependencies to generate recommendations.</p></div>
+</section>
+
+<footer>VulnScope · CVE & Dependency Risk Analyzer · Academic Project</footer>
+</main>
+</div>
+
+<script>
+const database=[
+{pkg:"lodash",version:"4.17.20",id:"CVE-2021-23337",severity:"High",score:7.2,fix:"4.17.21",desc:"Command injection vulnerability in affected lodash versions."},
+{pkg:"axios",version:"0.21.1",id:"CVE-2021-3749",severity:"High",score:7.5,fix:"0.21.2",desc:"Prototype pollution vulnerability in affected axios versions."},
+{pkg:"minimist",version:"1.2.5",id:"CVE-2021-44906",severity:"Critical",score:9.8,fix:"1.2.6",desc:"Prototype pollution in affected minimist versions."},
+{pkg:"jquery",version:"3.4.1",id:"CVE-2020-11022",severity:"Medium",score:6.1,fix:"3.5.0",desc:"Cross-site scripting vulnerability in affected jQuery versions."},
+{pkg:"express",version:"4.17.1",id:"DEMO-EXPRESS-001",severity:"Medium",score:5.3,fix:"4.18.3",desc:"Illustrative demo finding; verify using official advisories."}
+];
+let results=[],packageList=[];
+
+function go(id,button){
+document.getElementById(id).scrollIntoView({behavior:"smooth"});
+document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+button.classList.add("active");
+}
+
+function analyze(){
+const lines=document.getElementById("packages").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+packageList=[];
+for(let i=0;i<lines.length;i++){
+const match=lines[i].match(/^(@[^/\s]+\/[^@\s]+|[^@\s]+)@([^\s@]+)$/);
+if(!match){
+document.getElementById("message").textContent="Invalid entry on line "+(i+1)+". Use package@version.";
+return;
+}
+packageList.push({name:match[1].toLowerCase(),version:match[2]});
+}
+if(!packageList.length){
+document.getElementById("message").textContent="Please enter at least one dependency.";
+return;
+}
+
+results=packageList.flatMap(p=>database.filter(d=>d.pkg===p.name&&d.version===p.version).map(d=>({...d,installed:p.version})));
+const count={Critical:0,High:0,Medium:0,Low:0};
+results.forEach(r=>count[r.severity]++);
+const weights={Critical:10,High:7,Medium:4,Low:1};
+const total=results.reduce((s,r)=>s+weights[r.severity],0);
+const risk=results.length?Math.min(100,Math.round(100*(1-Math.exp(-total/18)))):0;
+
+document.getElementById("deps").textContent=packageList.length;
+document.getElementById("vulns").textContent=results.length;
+document.getElementById("crit").textContent=count.Critical;
+document.getElementById("score").textContent=risk;
+document.getElementById("riskSmall").textContent=risk+"/100";
+document.getElementById("riskLabel").textContent=risk>=70?"High risk":risk>=40?"Moderate risk":"Low/demo risk";
+document.getElementById("riskTitle").textContent=risk>=70?"High Risk":risk>=40?"Moderate Risk":results.length?"Low Risk":"No demo matches";
+document.getElementById("riskText").textContent=results.length?"Review the sample findings and verify them against real advisories.":"No matching sample records. This does not prove the packages are secure.";
+document.getElementById("bar").style.width=risk+"%";
+document.getElementById("cCount").textContent=count.Critical;
+document.getElementById("hCount").textContent=count.High;
+document.getElementById("mCount").textContent=count.Medium;
+document.getElementById("lCount").textContent=count.Low;
+document.getElementById("message").textContent="Demo analysis complete. Results are based only on built-in sample records.";
+renderTable();
+renderRecommendations();
+}
+
+function esc(v){
+return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function renderTable(){
+const q=document.getElementById("search").value.toLowerCase();
+const sev=document.getElementById("severity").value;
+const filtered=results.filter(r=>(sev==="All"||r.severity===sev)&&(r.pkg+" "+r.id).toLowerCase().includes(q));
+const body=document.getElementById("rows");
+if(!filtered.length){
+body.innerHTML='<tr><td colspan="6" style="padding:25px;color:#94a3b8">No matching sample findings. A clean result does not guarantee security.</td></tr>';
+return;
+}
+body.innerHTML=filtered.map(r=>`<tr>
+<td class="cve">${esc(r.id)}</td>
+<td>${esc(r.pkg)}</td>
+<td>${esc(r.installed)}</td>
+<td><span class="badge ${r.severity}">${r.severity}</span></td>
+<td>${r.score.toFixed(1)}</td>
+<td><button class="btn secondary" style="margin:0;padding:7px" onclick="suggestFix('${esc(r.pkg)}','${esc(r.fix)}')">${esc(r.fix)}</button></td>
+</tr>`).join("");
+}
+
+function suggestFix(pkg,version){
+const lines=document.getElementById("packages").value.split(/\r?\n/);
+document.getElementById("packages").value=lines.map(line=>{
+const m=line.trim().match(/^(@[^/\s]+\/[^@\s]+|[^@\s]+)@([^\s@]+)$/);
+return m&&m[1].toLowerCase()===pkg?pkg+"@"+version:line;
+}).join("\n");
+document.getElementById("message").textContent="Suggested version entered. Re-run analysis to refresh the sample report.";
+document.getElementById("analyzer").scrollIntoView({behavior:"smooth"});
+}
+
+function renderRecommendations(){
+const el=document.getElementById("recommendations");
+if(!results.length){
+el.innerHTML="<p>No matching sample records were found.</p><p>Always perform a real audit and verify package versions.</p>";
+return;
+}
+el.innerHTML=results.map(r=>`<p style="margin:8px 0">⚠ <b style="color:#eaf0fa">${esc(r.pkg)}</b> — ${esc(r.desc)} Suggested version to investigate: <b class="green">${esc(r.fix)}</b>.</p>`).join("")+
+"<p>Test updates before deployment and check official security advisories.</p>";
+}
+
+function resetForm(){
+document.getElementById("packages").value="";
+results=[];packageList=[];
+document.getElementById("deps").textContent="0";
+document.getElementById("vulns").textContent="0";
+document.getElementById("crit").textContent="0";
+document.getElementById("score").textContent="0";
+document.getElementById("riskSmall").textContent="0/100";
+document.getElementById("riskLabel").textContent="Awaiting analysis";
+document.getElementById("riskTitle").textContent="Not analyzed";
+document.getElementById("riskText").textContent="Analyze packages to see the sample risk.";
+document.getElementById("bar").style.width="0";
+["cCount","hCount","mCount","lCount"].forEach(id=>document.getElementById(id).textContent="0");
+document.getElementById("rows").innerHTML='<tr><td colspan="6">Enter packages to begin.</td></tr>';
+document.getElementById("recommendations").innerHTML="<p>Analyze dependencies to generate recommendations.</p>";
+document.getElementById("message").textContent="";
+}
+
+function exportCSV(){
+if(!packageList.length){
+document.getElementById("message").textContent="Analyze packages before exporting a report.";
+return;
+}
+const data=[["ID","Package","Installed Version","Severity","Score","Suggested Version"],...results.map(r=>[r.id,r.pkg,r.installed,r.severity,r.score,r.fix])];
+const csv=data.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));
+const a=document.createElement("a");a.href=url;a.download="vulnscope-report.csv";a.click();URL.revokeObjectURL(url);
+}
+analyze();
+</script>
+</body>
+</html>
